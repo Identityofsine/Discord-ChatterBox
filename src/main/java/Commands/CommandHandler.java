@@ -9,10 +9,12 @@ import java.util.TreeMap;
 public class CommandHandler extends ListenerAdapter {
 
     private static TreeMap<String, Command> commands = new TreeMap<String,Command>();
+    private static final char FIRSTKEY = '!';
+    private static final char SECONDKEY = '^';
 
     private static boolean isValidCommand(String command) {
         try{
-            return command.charAt(0) == '(' && command.charAt(1) == ')';
+            return command.charAt(0) == FIRSTKEY && command.charAt(1) == SECONDKEY;
         } catch(Exception e) {
             return false;
         }
@@ -31,6 +33,7 @@ public class CommandHandler extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
         String message = event.getMessage().getContentStripped();
+        if(event.getAuthor().isBot()) return;
         if(message.length() < 3) return;
         String[] split = message.split(" ");
         String command = split[0];
@@ -38,7 +41,7 @@ public class CommandHandler extends ListenerAdapter {
             System.out.println(message);
             Command cmd = findCommand(command);
             if(cmd != null){
-                event.getMessage().getChannel().sendMessage(String.format("COMMAND HANDLER WORKING @ You Sent a valid command : %s", cmd.commandName)).queue();
+                System.out.println(String.format("COMMAND HANDLER WORKING @ You Sent a valid command : %s", cmd.commandName));
                 cmd.behavior.action(event);
             }
             else return;
