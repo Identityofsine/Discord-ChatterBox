@@ -40,7 +40,7 @@ public class AudioForwarder implements AudioSendHandler {
     @Nullable
     @Override
     public ByteBuffer provide20MsAudio() {
-        return buffer.flip();
+        return (ByteBuffer) buffer.flip();
     }
 
     @Override

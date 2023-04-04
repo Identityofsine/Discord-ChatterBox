@@ -65,8 +65,8 @@ public class AudioCenter {
                 48000, // frame rate
                 true); // big endian
         try{
-            var _prev = AudioSystem.getAudioInputStream(file);
-            var _conv = AudioSystem.getAudioInputStream(targetFormat, _prev);
+            AudioInputStream _prev = AudioSystem.getAudioInputStream(file);
+            AudioInputStream _conv = AudioSystem.getAudioInputStream(targetFormat, _prev);
             int numSilentBytes = (int) (targetFormat.getFrameRate() * 0.02) * targetFormat.getFrameSize();
             byte[] silentBytes = new byte[numSilentBytes];
             audioInputStream = _conv;

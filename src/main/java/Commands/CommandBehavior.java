@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.events.role.GenericRoleEvent;
 import net.dv8tion.jda.api.events.self.GenericSelfUpdateEvent;
 import net.dv8tion.jda.api.events.user.GenericUserEvent;
 
+import java.util.Iterator;
+
 public abstract class CommandBehavior {
 
     Arguments arguments;
@@ -28,7 +30,7 @@ public abstract class CommandBehavior {
     public abstract void action(GenericRoleEvent event);
 
     protected void addArgument(Argument...args){
-        for (var arg : args ) {
+        for (Argument arg : args ) {
             arguments.addArgs(arg);
         }
     }
@@ -39,9 +41,9 @@ public abstract class CommandBehavior {
 
     protected <E> Argument<E> getArgument(String text){
         Argument<E> object = null;
-        var iterator = arguments.args.iterator();
+        Iterator iterator = arguments.args.iterator();
         while(iterator.hasNext()){
-            var i = iterator.next();
+            Object i = iterator.next();
             if(((Argument<E>)i).argName.equals(text)){
                 object = (Argument<E>)i;
             }

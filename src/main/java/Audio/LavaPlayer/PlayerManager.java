@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Guild;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class PlayerManager {
 
@@ -41,10 +42,33 @@ public class PlayerManager {
         return isPlaying;
     }
 
+    public GuildMusicManager getGuildMusicManager(Guild guild, AudioBehavior behavior) {
+        return guildMusicManagers.computeIfAbsent(guild.getIdLong(), (guildId) -> {
+            GuildMusicManager musicManager = new GuildMusicManager(audioPlayerManager, guild, behavior);
+
+            guild.getAudioManager().setSendingHandler(musicManager.getAudioForwarder());
+
+            return musicManager;
+        });
+    }
+
     public GuildMusicManager getGuildMusicManager(Guild guild) {
         return guildMusicManagers.computeIfAbsent(guild.getIdLong(), (guildId) -> {
-            GuildMusicManager musicManager = new GuildMusicManager(audioPlayerManager, guild, () -> {
-                guild.getAudioManager().closeAudioConnection();
+            GuildMusicManager musicManager = new GuildMusicManager(audioPlayerManager, guild, new AudioBehavior() {
+                @Override
+                public void queueBehavior(AudioTrack track) {
+                    //empty
+                }
+
+                @Override
+                public void onLoadBehavior(AudioTrack track) {
+                    //empty
+                }
+
+                @Override
+                public void endBehavior(AudioTrack track) {
+                    //empty
+                }
             });
 
             guild.getAudioManager().setSendingHandler(musicManager.getAudioForwarder());
@@ -89,8 +113,41 @@ public class PlayerManager {
             }
         });
     }
-    public void play(Guild guild, String trackURL, AudioQueueBehavior queueBehavior){
-        this.play(guild,trackURL);
-        getGuildMusicManager(guild).getTrackScheduler().setQueueBehavior(queueBehavior);
+
+    public static String formatDurationToMMSS(long durationInMillis) {
+        return String.format("%02d:%02d",
+                TimeUnit.MILLISECONDS.toMinutes(durationInMillis),
+                TimeUnit.MILLISECONDS.toSeconds(durationInMillis) -
+                        TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(durationInMillis))
+        );
+    }
+
+
+    public void play(Guild guild, String trackURL, AudioBehavior audioBehavior){
+        GuildMusicManager guildMusicManager = getGuildMusicManager(guild, audioBehavior);
+
+        audioPlayerManager.loadItemOrdered(guildMusicManager, trackURL, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                audioBehavior.onLoadBehavior(track);
+                guildMusicManager.getTrackScheduler().queue(track);
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                guildMusicManager.getTrackScheduler().queue(playlist.getTracks().get(0));
+            }
+
+            @Override
+            public void noMatches() {
+
+            }
+
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                guildMusicManager.getTrackScheduler().getEndBehavior();
+            }
+        });
+
     }
 }

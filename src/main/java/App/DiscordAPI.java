@@ -18,7 +18,7 @@ public class DiscordAPI {
 
     private DiscordAPI(){
         //init
-        var builder = JDABuilder.createDefault(TOKEN);
+        JDABuilder builder = JDABuilder.createDefault(TOKEN);
         builder.enableIntents(GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_VOICE_STATES);
         builder.disableCache(EnumSet.of(
                 CacheFlag.CLIENT_STATUS,

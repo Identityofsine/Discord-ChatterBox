@@ -13,18 +13,18 @@ import java.util.function.Consumer;
 public class TrackScheduler extends AudioEventAdapter {
 
     private final AudioPlayer player;
+
+    public static final Object lock = new Object();
     private final BlockingQueue<AudioTrack> queue = new LinkedBlockingQueue<>();
     private AudioTrack currentTrack = null;
     private boolean isRepeat = false;
 
-    private final AudioEndBehavior endBehavior;
+    private final AudioBehavior audioBehavior;
 
-    private AudioQueueBehavior queueBehavior;
 
-    public TrackScheduler(AudioPlayer player, AudioEndBehavior endBehavior, AudioQueueBehavior queueBehavior) {
+    public TrackScheduler(AudioPlayer player, AudioBehavior audioBehavior) {
         this.player = player;
-        this.endBehavior = endBehavior;
-        this.queueBehavior = queueBehavior;
+        this.audioBehavior = audioBehavior;
     }
 
     public void clearQueue(){
@@ -35,30 +35,35 @@ public class TrackScheduler extends AudioEventAdapter {
         player.stopTrack();
     }
 
-    public void setQueueBehavior(AudioQueueBehavior quebe){
-        this.queueBehavior = quebe;
-    }
+
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
         if(isRepeat) {
             player.startTrack(track.makeClone(), false);
         } else {
             PlayerManager.get().setIsPlaying(queue.isEmpty());
-            if(queue.isEmpty())
-                endBehavior.end();
-            else
-                queueBehavior.fire(queue.peek());
-            player.startTrack(queue.poll(), false);
+            synchronized (lock){
+                if(queue.isEmpty())
+                    audioBehavior.endBehavior(null);
+                else
+                    audioBehavior.queueBehavior(queue.peek());
+                player.startTrack(queue.poll(), false);
+                lock.notify();
+            }
+
 
         }
     }
 
     public void queue(AudioTrack track) {
-        if(!player.startTrack(track, true)) {
-            queue.offer(track);
-        } else{
-            currentTrack = track;
-            PlayerManager.get().setIsPlaying(true);
+        synchronized (lock){
+            if(!player.startTrack(track, true)) {
+                queue.offer(track);
+            } else{
+                currentTrack = track;
+                PlayerManager.get().setIsPlaying(true);
+            }
+            lock.notify();
         }
     }
 
@@ -76,7 +81,7 @@ public class TrackScheduler extends AudioEventAdapter {
 
     public boolean getEndBehavior(){
         if(queue.isEmpty())
-            endBehavior.end();
+            audioBehavior.endBehavior(null);
         return queue.isEmpty();
     }
 

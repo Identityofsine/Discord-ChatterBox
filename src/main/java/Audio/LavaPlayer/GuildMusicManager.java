@@ -10,9 +10,9 @@ public class GuildMusicManager {
     private AudioForwarder audioForwarder;
 
 
-    public GuildMusicManager(AudioPlayerManager manager, Guild guild, AudioEndBehavior endBehavior) {
+    public GuildMusicManager(AudioPlayerManager manager, Guild guild, AudioBehavior behavior) {
         AudioPlayer player = manager.createPlayer();
-        trackScheduler = new TrackScheduler(player, endBehavior, (e) -> {});
+        trackScheduler = new TrackScheduler(player, behavior);
         player.addListener(trackScheduler);
         audioForwarder = new AudioForwarder(player, guild);
     }

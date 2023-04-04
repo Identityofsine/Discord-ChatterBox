@@ -20,6 +20,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioReference;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
@@ -41,6 +42,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Iterator;
+import java.util.concurrent.BlockingQueue;
 
 public class Join extends CommandBehavior {
 
@@ -72,7 +75,7 @@ public class Join extends CommandBehavior {
 
     @Override
     public void action(GenericMessageEvent event) {
-        var jda = DiscordAPI.getInstance().getJda();
+        JDA jda = DiscordAPI.getInstance().getJda();
         Member user = CommandBehavior.getMessageSender(event);
         VoiceChannel voiceChannel = user.getVoiceState().getChannel().asVoiceChannel();
         Guild guild = voiceChannel.getGuild();
@@ -80,12 +83,12 @@ public class Join extends CommandBehavior {
 
 
         guild.getAudioManager().openAudioConnection(voiceChannel);
-        var audioHandler = PlayerManager.get();
+        PlayerManager audioHandler = PlayerManager.get();
         audioHandler.play(event.getGuild(), "https://www.youtube.com/watch?v=Liek9WZERGs");
 
         if(audioHandler.isPlaying()){
             String message = "Queue : \n";
-            var it = audioHandler.getGuildMusicManager(guild).getTrackScheduler().getQueue().iterator();
+            Iterator<AudioTrack> it = audioHandler.getGuildMusicManager(guild).getTrackScheduler().getQueue().iterator();
             int i = 1;
             while(it.hasNext()){
                 message += String.format("%d: %s\n", i++, it.next().getInfo().title);

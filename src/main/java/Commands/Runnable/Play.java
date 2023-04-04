@@ -1,9 +1,10 @@
 package Commands.Runnable;
 
+import Audio.LavaPlayer.AudioBehavior;
 import Audio.LavaPlayer.PlayerManager;
 import Commands.Arguments.Argument;
 import Commands.CommandBehavior;
-import com.sun.jdi.connect.Connector;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.events.message.GenericMessageEvent;
 import net.dv8tion.jda.api.events.role.GenericRoleEvent;
 import net.dv8tion.jda.api.events.self.GenericSelfUpdateEvent;
 import net.dv8tion.jda.api.events.user.GenericUserEvent;
+import net.dv8tion.jda.api.utils.MarkdownUtil;
 
 class YoutubeInfo{
 
@@ -60,25 +62,28 @@ public class Play extends CommandBehavior {
         Guild guild = voiceChannel.getGuild();
 
 
+        PlayerManager audioHandler = PlayerManager.get();
         guild.getAudioManager().openAudioConnection(voiceChannel);
-        var audioHandler = PlayerManager.get();
-        audioHandler.play(event.getGuild(), (String)this.getArgument("url").getValue(), (item) -> {
-            event.getChannel().sendMessage("Now Playing : " + item.getInfo().title).complete();
-        });
 
-        if(audioHandler.isPlaying()){
-            String message = "Queue : \n";
-            var it = audioHandler.getGuildMusicManager(guild).getTrackScheduler().getQueue().iterator();
-            int i = 1;
-            while(it.hasNext()){
-                message += String.format("%d: %s\n", i++, it.next().getInfo().title);
+        audioHandler.play(event.getGuild(), (String) this.getArgument("url").getValue(), new AudioBehavior() {
+            @Override
+            public void queueBehavior(AudioTrack track) {
+                event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Now Playing : *%s* (%s)", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
             }
-            message += String.format("%d: %s\n", i, url);
-            event.getChannel().sendMessage(message).queue();
-        }
-        else
-            event.getChannel().sendMessage("Playing " + url).queue();
 
+            @Override
+            public void onLoadBehavior(AudioTrack track) {
+                if(!audioHandler.isPlaying())
+                    event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Now Playing : *%s* (%s)", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
+                else
+                    event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Added \"*%s*\" (%s) to queue!", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
+            }
+
+            @Override
+            public void endBehavior(AudioTrack track) {
+                guild.getAudioManager().closeAudioConnection();
+            }
+        });
     }
 
     @Override
