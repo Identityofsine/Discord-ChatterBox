@@ -26,7 +26,7 @@ public class DiscordAPI {
                 CacheFlag.EMOJI
         ));
         builder.enableCache(CacheFlag.VOICE_STATE);
-        builder.setActivity(Activity.playing("Nick's Sex Tips"));
+        builder.setActivity(Activity.listening("Chocolate and Mint - Duster"));
         jda = builder.build();
     }
 

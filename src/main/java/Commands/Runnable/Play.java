@@ -54,36 +54,51 @@ public class Play extends CommandBehavior {
         String[] arr = msg_String.split(" ");
         if(arr.length <= 1) {
             event.getChannel().sendMessage("Missing Youtube URL").queue();
+            return;
         }
-        String url = arr[1];
+        String url = "";
+        try {
+            url = arr[1];
+        }
+        catch(ArrayIndexOutOfBoundsException e){
+            event.getChannel().sendMessage("Missing Youtube URL").queue();
+            return;
+        }
         this.getArgument("url").setValue(url);
         Member user = CommandBehavior.getMessageSender(event);
-        VoiceChannel voiceChannel = user.getVoiceState().getChannel().asVoiceChannel();
-        Guild guild = voiceChannel.getGuild();
+        try{
+
+            VoiceChannel voiceChannel = user.getVoiceState().getChannel().asVoiceChannel();
+
+            Guild guild = voiceChannel.getGuild();
 
 
-        PlayerManager audioHandler = PlayerManager.get();
-        guild.getAudioManager().openAudioConnection(voiceChannel);
+            PlayerManager audioHandler = PlayerManager.get();
+            guild.getAudioManager().openAudioConnection(voiceChannel);
 
-        audioHandler.play(event.getGuild(), (String) this.getArgument("url").getValue(), new AudioBehavior() {
-            @Override
-            public void queueBehavior(AudioTrack track) {
-                event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Now Playing : *%s* (%s)", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
-            }
-
-            @Override
-            public void onLoadBehavior(AudioTrack track) {
-                if(!audioHandler.isPlaying())
+            audioHandler.play(event.getGuild(), (String) this.getArgument("url").getValue(), new AudioBehavior() {
+                @Override
+                public void queueBehavior(AudioTrack track) {
                     event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Now Playing : *%s* (%s)", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
-                else
-                    event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Added \"*%s*\" (%s) to queue!", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
-            }
+                }
 
-            @Override
-            public void endBehavior(AudioTrack track) {
-                guild.getAudioManager().closeAudioConnection();
-            }
-        });
+                @Override
+                public void onLoadBehavior(AudioTrack track) {
+                    if(!audioHandler.isPlaying())
+                        event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Now Playing : *%s* (%s)", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
+                    else
+                        event.getChannel().sendMessage(MarkdownUtil.bold(String.format("Added \"*%s*\" (%s) to queue!", track.getInfo().title, PlayerManager.formatDurationToMMSS(track.getDuration())))).queue();
+                }
+
+                @Override
+                public void endBehavior(AudioTrack track) {
+                    guild.getAudioManager().closeAudioConnection();
+                }
+            });
+        }
+        catch (NullPointerException e){
+            event.getChannel().sendMessage("You aren't in a voice channel! **(or I can't join...)**").complete();
+        }
     }
 
     @Override
