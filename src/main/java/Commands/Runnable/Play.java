@@ -74,7 +74,7 @@ public class Play extends CommandBehavior {
                 JsonNode snippet = found_item.get("snippet"); //Corresponds with the JSON file
                 ytVideos.add(new YoutubeEntry(found_item.get("id").get("videoId").asText(), snippet.get("title").asText(), snippet.get("channelTitle").asText()));
             }
-            message_precursor.append("**Found Videos for ").append(query).append("**\n");
+            message_precursor.append("**Found Videos for ").append(query.replace("%20", " ")).append("**\n");
             message_precursor.append(Util.repeatString("#=",message_precursor.toString().length())).append("\n");
             int index = 1;
             for(YoutubeEntry video : ytVideos){
