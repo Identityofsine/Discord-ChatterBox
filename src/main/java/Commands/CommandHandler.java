@@ -8,6 +8,7 @@ import java.util.TreeMap;
 
 public class CommandHandler extends ListenerAdapter {
 
+    public static Object CommandLock = new Object();
     private static TreeMap<String, Command> commands = new TreeMap<String,Command>();
     private static final char FIRSTKEY = '!';
     private static final char SECONDKEY = '^';
@@ -22,13 +23,26 @@ public class CommandHandler extends ListenerAdapter {
     }
 
     private static Command findCommand(String name){
-        String command = name.substring(2, name.length());
-        return commands.get(command);
+        synchronized (CommandLock){
+            String command = name.substring(2, name.length());
+            return commands.get(command);
+        }
+    }
+
+    public static boolean removeCommands(Command... cmds){
+        synchronized (CommandLock){
+            for(int i = 0; i <= cmds.length; i++){
+                commands.remove(cmds[i].commandName);
+            }
+        }
     }
 
     public static boolean addCommands(Command cmd){
-        return commands.putIfAbsent(cmd.commandName,cmd) == null;
+        synchronized (CommandLock){
+            return commands.putIfAbsent(cmd.commandName,cmd) == null;
+        }
     }
+
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event){

@@ -31,6 +31,10 @@ public class Play extends CommandBehavior {
         this.addArgument(new Argument<String>("url", "Link"));
     }
 
+    protected boolean isLink(String arg){
+        return arg.matches("/((([A-Za-z]{3,9}:(?:\\/\\/)?)(?:[-;:&=\\+\\$,\\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\\+\\$,\\w]+@)[A-Za-z0-9.-]+)((?:\\/[\\+~%\\/.\\w-_]*)?\\??(?:[-\\+=&;%@.\\w_]*)#?(?:[\\w]*))?)/\n");
+    }
+
     @Override
     protected void action(GenericEvent event) {
 
@@ -64,10 +68,13 @@ public class Play extends CommandBehavior {
             event.getChannel().sendMessage("Missing Youtube URL").queue();
             return;
         }
+        if(!isLink(url)){
+            event.getChannel().sendMessage("Missing Youtube URL").queue();
+            return;
+        }
         this.getArgument("url").setValue(url);
         Member user = CommandBehavior.getMessageSender(event);
         try{
-
             VoiceChannel voiceChannel = user.getVoiceState().getChannel().asVoiceChannel();
 
             Guild guild = voiceChannel.getGuild();
