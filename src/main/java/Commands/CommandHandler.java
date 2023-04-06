@@ -8,7 +8,7 @@ import java.util.TreeMap;
 
 public class CommandHandler extends ListenerAdapter {
 
-    public static Object CommandLock = new Object();
+    public static final Object CommandLock = new Object();
     private static TreeMap<String, Command> commands = new TreeMap<String,Command>();
     private static final char FIRSTKEY = '!';
     private static final char SECONDKEY = '^';
@@ -29,7 +29,7 @@ public class CommandHandler extends ListenerAdapter {
         }
     }
 
-    public static boolean removeCommands(Command... cmds){
+    public static void removeCommands(Command... cmds){
         synchronized (CommandLock){
             for(int i = 0; i <= cmds.length; i++){
                 commands.remove(cmds[i].commandName);
