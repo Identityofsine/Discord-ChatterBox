@@ -4,6 +4,7 @@ import Commands.Runnable.*;
 
 public class CommandInit {
 
+
     public static void addChatCommands(){
         CommandHandler.addCommands(new Command("java", new Java()));
         CommandHandler.addCommands(new Command("echo", new Echo()));
