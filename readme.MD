@@ -46,7 +46,7 @@ Each Command is added at initalization in Commands.CommandInit
 
 To Add A Command(That you have added in Commands.Runnable), you would add :
 ```java
-        CommandHandler.addCommands(new Command("commandName", new CommandName()));
+CommandHandler.addCommands(new Command("commandName", new CommandName()));
 ```
 
 ### Requester Class
