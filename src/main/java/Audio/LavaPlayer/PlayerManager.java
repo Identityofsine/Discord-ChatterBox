@@ -146,6 +146,7 @@ public class PlayerManager {
             @Override
             public void loadFailed(FriendlyException exception) {
                 guildMusicManager.getTrackScheduler().getEndBehavior();
+                exception.printStackTrace();
             }
         });
 
