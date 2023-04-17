@@ -117,6 +117,19 @@ public class Play extends CommandBehavior {
             event.getChannel().sendMessage("Missing Youtube URL").queue();
             return;
         }
+
+        String arg = "";
+        //argument finder
+        if(arr.length > 2){
+            for(String word : arr){
+                if(word.length() < 3) continue;
+                if(word.charAt(0) == '#' && word.charAt(1) == '$'){
+                    arg = word;
+                    break;
+                }
+            }
+            System.out.println("Argument Found : " + arg);
+        }
         String url = "";
         try {
             url = arr[1];
@@ -128,6 +141,7 @@ public class Play extends CommandBehavior {
         if((!isLink(url) || arr.length > 2) && !hasYoutubeCommandRan){
             StringBuilder oldString = new StringBuilder();
             for(int i = 1; i < arr.length; i++){
+                if(arr[i].equals(arg)) continue;
                 oldString.append(arr[i]).append(i == arr.length - 1 ? "" : "%20");
             }
 
