@@ -9,6 +9,7 @@ import Audio.YoutubeEntry;
 import Commands.Arguments.Argument;
 import Commands.CommandBehavior;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import io.github.cdimascio.dotenv.Dotenv;
 import net.dv8tion.jda.api.entities.Guild;
@@ -46,6 +47,7 @@ public class Play extends CommandBehavior {
     }
 
     public Play(){
+        this.addRole("DJ", "MUSIC");
         this.addArgument(new Argument<String>("url", "Link"));
     }
 
@@ -115,6 +117,13 @@ public class Play extends CommandBehavior {
         String[] arr = msg_String.split(" ");
         if(arr.length <= 1) {
             event.getChannel().sendMessage("Missing Youtube URL").queue();
+            return;
+        }
+
+        if(msg.getMember() == null) return;
+
+        if(!isUserAllowed(msg.getMember())) {
+            event.getChannel().sendMessage("**You are not allowed to use this command...**").queue();
             return;
         }
 
@@ -203,10 +212,13 @@ public class Play extends CommandBehavior {
                 public void endBehavior(AudioTrack track) {
                     guild.getAudioManager().closeAudioConnection();
                 }
-            });
+            }, event.getChannel());
         }
         catch (NullPointerException e){
             event.getChannel().sendMessage("You aren't in a voice channel! **(or I can't join...)**").complete();
+        }
+        catch (FriendlyException e) {
+            event.getChannel().sendMessage("**❌ LavaPlayer Encountered an Error: " + e.getMessage() + "**").complete();
         }
     }
 

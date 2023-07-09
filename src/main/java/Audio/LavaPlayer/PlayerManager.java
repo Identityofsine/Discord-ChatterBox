@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -149,6 +150,36 @@ public class PlayerManager {
                 exception.printStackTrace();
             }
         });
-
     }
+
+    public void play(Guild guild, String trackURL, AudioBehavior audioBehavior, MessageChannelUnion channel){
+        GuildMusicManager guildMusicManager = getGuildMusicManager(guild, audioBehavior);
+
+        audioPlayerManager.loadItemOrdered(guildMusicManager, trackURL, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                audioBehavior.onLoadBehavior(track);
+                guildMusicManager.getTrackScheduler().queue(track);
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                guildMusicManager.getTrackScheduler().queue(playlist.getTracks().get(0));
+            }
+
+            @Override
+            public void noMatches() {
+
+            }
+
+            @Override
+            public void loadFailed(FriendlyException exception) {
+                if(guildMusicManager.getTrackScheduler().getQueue().size() <= 1)
+                    guildMusicManager.getTrackScheduler().getEndBehavior();
+                channel.sendMessage("**❌ LavaPlayer Encountered an Error: " + exception.getMessage() + "**").complete();
+                exception.printStackTrace();
+            }
+        });
+    }
+
 }
