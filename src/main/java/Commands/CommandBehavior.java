@@ -68,7 +68,6 @@ public abstract class CommandBehavior {
 
     private boolean roleExists(Role role_object) {
         for(Commands.Permission.Role role : allowed_roles){
-            System.out.println("[DEBUG] : " + role.getRoleName() + " : " + role_object.toString());
             if(role.equals(role_object)){
                 return true;
             }
